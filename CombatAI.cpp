@@ -266,7 +266,7 @@ int ECharacter::target(PCharacter party[], ECharacter eParty[])
 				if (mode == 3) //Reset if in Danger mode
 					mode = 0;
 				int test = rand() % 10; //May tweak it to adjust frequency of attacking
-				if (counter + test > 8)
+				if (counter + test > 6)
 					mode = 1;
 			}
 		}
@@ -305,7 +305,6 @@ int ECharacter::target(PCharacter party[], ECharacter eParty[])
 			int CHOOSE;
 			for (int i = 0; i < 5; i++)
 			{
-				cout << "Checking health again...\n";
 				if (eParty[i].StateB != N_A || eParty[i].StateB != DEAD)
 				{
 					if (eParty[i].HP < backUp)
@@ -474,45 +473,54 @@ attack ECharacter::moveSelect()
 	}
 	case 2: //DEFENSIVE
 	{
-		/*NOTES ON ATTACKS
-		Mode 0: Select even slots, the Defense slots.
-		Danger mode: Defends/heals self
-		Mode 1: Aggressively attack enemy. Unaffected by danger mode.*/
 		// 0: DEFEND TARGET   1: ATTACK TARGET   2: BERSERK TARGET   3: IN DANGER! DEFEND!
 		while (choice.accuracy == -1)
 		{
-		switch (this->mode)
-		{
-			default:
+			
+			int selection = rand() % 24;
+			switch (this->mode)
 			{
-				cout << "ERROR\n";
-				return this->Basic;
+				default:
+				{
+					cout << "ERROR\n";
+					return this->Basic;
+				}
+				case 0: //Defend! [SLOTS 0 - 3] (weighted with 0 and 1 being more likely)
+				{
+					selection = selection / 4;
+					selection = selection % 4;
+					break;
+				}
+				case 1: //Attack!
+				{
+					selection = selection / 3;
+					selection = selection - 1; 
+					if (selection < 0)
+						selection = 0;
+					selection = selection % 4;
+					selection = selection + 3; //That should get us either 3, 4, 5, or 6
+					if (selection == 3) //Weighted toward 3, so as to get us a basic attack easily enough
+					{
+						choice = this->Basic;
+						return choice;
+					}
+					break;
+				}
+				case 2: //Everyone's dead! BURN DOWN THEIR HOUSES!!!
+				{
+					selection = selection % 4;
+					selection = selection % 3;
+					selection = selection + 7;
+					break;
+				}
+				case 3: //I'm hurt! FALL BACK!!!
+				{
+					selection = 2; //2 will always be DEFEND for defensives, or an appropriate reaction, or perhaps a healing spell. Self-targeted. Or a flee.
+					break;
+				}
 			}
-			case 0: //Defend!
-			{
-
-				break;
-			}
-			case 1: //Attack!
-			{
-				
-				break;
-			}
-			case 2: //Everyone's dead! BURN DOWN THEIR HOUSES!!!
-			{
-				//Pick from BERSERK moves
-				// I'm thinking slots 7-9 should be those moves, but will think about it.
-				break;
-			}
-			case 3: //I'm hurt! FALL BACK!!!
-			{
-				choice = this->moveset[2]; //2 will always be DEFEND for defensives, or an appropriate reaction, or perhaps a healing spell. Self-targeted. Or a flee.
-				break;
-			}
-			}
+			choice = this->moveset[selection];
 		}
-		
-		choice = this->moveset[0]; //TEMP
 	}
 	case 3: //REACTIVE
 	{
