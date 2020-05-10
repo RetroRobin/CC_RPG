@@ -21,7 +21,7 @@ void stateController::setBag()
 	this->Bag[0].currAmount = 5;
 	this->Bag[1].currAmount = 5;
 	this->Bag[2].currAmount = 5;
-	this->Bag[3].currAmount = 5;
+	this->Bag[3].currAmount = 2;
 	this->Bag[4].currAmount = 3;
 }
 
@@ -155,10 +155,11 @@ void stateController::drawCField()
 	int Ecombatants = 0;
 	bool eDead[5] = { false, false, false, false, false };
 	bool pDead[4] = { false, false, false, false };
-	string enemy1 = "      ", enemy2 = "      ", enemy3 = "      ", enemy4 = "      ", enemy5 = "      ";
+	string enemy1 = "       ", enemy2 = "       ", enemy3 = "       ", enemy4 = "       ", enemy5 = "       ";
 	string player1 = "         ", player2 = "         ", player3 = "         ", player4 = "         ", player5 = "         ";
-	string boss1 = "      ", boss2 = "      ", boss3 = "      ";
-	for (int i = 0; i < 4; i++)
+	string boss1 = "        ", boss2 = "        ", boss3 = "        ";
+	string prep[5];
+	for (int i = 0; i < 4; i++) //What player characters are active?
 	{
 		if (this->Pparty[i].StateB == N_A)
 			break;
@@ -166,14 +167,32 @@ void stateController::drawCField()
 			pDead[i] = true;
 		Pcombatants++;
 	}
-	
-	if (BOSS.Entity.StateB != N_A)
+
+	for (int i = 0; i < 5; i++) //What enemy characters are active?
+	{
+		if (this->Eparty[i].StateB == N_A)
+			break;
+		if (this->Eparty[i].StateB == DEAD)
+			eDead[i] = true;
+		Ecombatants++;
+	}
+
+	for (int i = 0; i < Ecombatants; i++) //Graphics for preparing
+	{
+		prep[i] = " ";
+		if (Eparty[i].DANGER == true)
+			prep[i] = "\"";
+		if (Eparty[i].prepared == true)
+			prep[i] = "*";
+	}
+
+	if (BOSS.Entity.StateB != N_A) //Boss field code, untested
 	{
 		if (BOSS.Entity.graphic[3] == "")
 		{
-			boss1 = BOSS.Entity.graphic[0];
-			boss2 = BOSS.Entity.graphic[1];
-			boss3 = BOSS.Entity.graphic[2];
+			boss1 = "  " + BOSS.Entity.graphic[0];
+			boss2 = "1" + prep[0] + BOSS.Entity.graphic[1];
+			boss3 = "  " + BOSS.Entity.graphic[2];
 		}
 		else
 		{
@@ -185,150 +204,142 @@ void stateController::drawCField()
 		}
 		for (int i = 0; i < 5; i++)
 		{
-			if (BOSS.subEntity[i].StateB != N_A || DEAD)
+			if (BOSS.subEntity[i].StateB != N_A && eDead[i+1] != true)
 			{
-				for (int j = 0; j < 5; j++)
+				switch (BOSS.subEntPos[i])
 				{
-					if (BOSS.subEntPos[j] == i)
-					{
-						switch (j)
-						{
-						case(0):
-							enemy2 = BOSS.subEntity[i].graphic[0];
-						case(1):
-							boss1 = BOSS.subEntity[i].graphic[0];
-						case(2):
-							boss2 = BOSS.subEntity[i].graphic[0];
-						case(3):
-							boss3 = BOSS.subEntity[i].graphic[0];
-						case(4):
-							enemy4 = BOSS.subEntity[i].graphic[0];
-						}
-					}
+				case(0):
+					enemy2 = "2 " + BOSS.subEntity[i].graphic[0];
+					break;
+				case(1):
+					boss1 = "2 " + BOSS.subEntity[i].graphic[0];
+					break;
+				case(2):
+					boss2 = "2 " + BOSS.subEntity[i].graphic[0];
+					break;
+				case(3):
+					boss3 = "2 " + BOSS.subEntity[i].graphic[0];
+					break;
+				case(4):
+					enemy4 = "2 " + BOSS.subEntity[i].graphic[0];
+					break;
 				}
 			}
 		}
 	}
-
-	for (int i = 0; i < 5; i++)
+	else 	
 	{
-		if (this->Eparty[i].StateB == N_A)
+		switch (Ecombatants) { //This needs disabling for Bosses
+		case 1:
+		{
+			if (eDead[0] == true)
+				enemy3 = "       ";
+			else
+			{
+				enemy3 = "1" + prep[0] + Eparty[0].graphic[Eparty[0].mode];
+			}
 			break;
-		if (this->Eparty[i].StateB == DEAD)
-			eDead[i] = true;
-		Ecombatants++;
-	}
-
-	switch (Ecombatants) {
-	case 1:
-	{
-		if (eDead[0] == true)
-			enemy3 = "      ";
-		else
-		{
-			enemy3 = "1" + Eparty[0].graphic[Eparty[0].mode];
 		}
-		break;
-	}
-	case 2:
-	{
-		if (eDead[0] == true)
-			enemy2 = "      ";
-		else
+		case 2:
 		{
-			enemy2 = "1" + Eparty[0].graphic[Eparty[0].mode];
+			if (eDead[0] == true)
+				enemy2 = "       ";
+			else
+			{
+				enemy2 = "1" + prep[0] + Eparty[0].graphic[Eparty[0].mode];
+			}
+			if (eDead[1] == true)
+				enemy4 = "       ";
+			else
+			{
+				enemy3 = "2" + prep[1] + Eparty[1].graphic[Eparty[1].mode];
+			}
+			break;
 		}
-		if (eDead[1] == true)
-			enemy4 = "      ";
-		else
+		case 3:
 		{
-			enemy3 = "2" + Eparty[1].graphic[Eparty[1].mode];
+			if (eDead[0] == true)
+				enemy1 = "       ";
+			else
+			{
+				enemy1 = "1" + prep[0] + Eparty[0].graphic[Eparty[0].mode];
+			}
+			if (eDead[1] == true)
+				enemy3 = "       ";
+			else
+			{
+				enemy3 = "2" + prep[1] + Eparty[1].graphic[Eparty[1].mode];
+			}
+			if (eDead[2] == true)
+				enemy5 = "       ";
+			else
+			{
+				enemy5 = "3" + prep[2] + Eparty[2].graphic[Eparty[2].mode];
+			}
+			break;
 		}
-		break;
-	}
-	case 3:
-	{
-		if (eDead[0] == true)
-			enemy1 = "      ";
-		else
+		case 4:
 		{
-			enemy1 = "1" + Eparty[0].graphic[Eparty[0].mode];
+			if (eDead[0] == true)
+				enemy1 = "       ";
+			else
+			{
+				enemy1 = "1" + prep[0] + Eparty[0].graphic[Eparty[0].mode];
+			}
+			if (eDead[1] == true)
+				enemy2 = "       ";
+			else
+			{
+				enemy2 = "2" + prep[1] + Eparty[1].graphic[Eparty[1].mode];
+			}
+			if (eDead[2] == true)
+				enemy4 = "       ";
+			else
+			{
+				enemy4 = "3" + prep[2] + Eparty[2].graphic[Eparty[2].mode];
+			}
+			if (eDead[3] == true)
+				enemy5 = "       ";
+			else
+			{
+				enemy5 = "4" + prep[3] + Eparty[3].graphic[Eparty[3].mode];
+			}
+			break;
 		}
-		if (eDead[1] == true)
-			enemy3 = "      ";
-		else
+		case 5:
 		{
-			enemy3 = "2" + Eparty[1].graphic[Eparty[1].mode];
+			if (eDead[0] == true)
+				enemy1 = "       ";
+			else
+			{
+				enemy1 = "1" + prep[0] + Eparty[0].graphic[Eparty[0].mode];
+			}
+			if (eDead[1] == true)
+				enemy2 = "       ";
+			else
+			{
+				enemy2 = "2" + prep[1] + Eparty[1].graphic[Eparty[1].mode];
+			}
+			if (eDead[2] == true)
+				enemy3 = "       ";
+			else
+			{
+				enemy3 = "3" + prep[2] + Eparty[2].graphic[Eparty[2].mode];
+			}
+			if (eDead[3] == true)
+				enemy4 = "       ";
+			else
+			{
+				enemy4 = "4" + prep[3] + Eparty[3].graphic[Eparty[3].mode];
+			}
+			if (eDead[4] == true)
+				enemy5 = "       ";
+			else
+			{
+				enemy5 = "5" + prep[4] + Eparty[4].graphic[Eparty[4].mode];
+			}
 		}
-		if (eDead[2] == true)
-			enemy5 = "      ";
-		else
-		{
-			enemy5 = "3" + Eparty[2].graphic[Eparty[2].mode];
 		}
-		break;
-	}
-	case 4:
-	{
-		if (eDead[0] == true)
-			enemy1 = "      ";
-		else
-		{
-			enemy1 = "1" + Eparty[0].graphic[Eparty[0].mode];
-		}
-		if (eDead[1] == true)
-			enemy2 = "      ";
-		else
-		{
-			enemy2 = "2" + Eparty[1].graphic[Eparty[1].mode];
-		}
-		if (eDead[2] == true)
-			enemy4 = "      ";
-		else
-		{
-			enemy4 = "3" + Eparty[2].graphic[Eparty[2].mode];
-		}
-		if (eDead[3] == true)
-			enemy5 = "      ";
-		else
-		{
-			enemy5 = "4" + Eparty[3].graphic[Eparty[3].mode];
-		}
-		break;
-	}
-	case 5:
-	{
-		if (eDead[0] == true)
-			enemy1 = "      ";
-		else
-		{
-			enemy1 = "1" + Eparty[0].graphic[Eparty[0].mode];
-		}
-		if (eDead[1] == true)
-			enemy2 = "      ";
-		else
-		{
-			enemy2 = "2" + Eparty[1].graphic[Eparty[1].mode];
-		}
-		if (eDead[2] == true)
-			enemy3 = "      ";
-		else
-		{
-			enemy3 = "3" + Eparty[2].graphic[Eparty[2].mode];
-		}
-		if (eDead[3] == true)
-			enemy4 = "      ";
-		else
-		{
-			enemy4 = "4" + Eparty[3].graphic[Eparty[3].mode];
-		}
-		if (eDead[4] == true)
-			enemy5 = "      ";
-		else
-		{
-			enemy5 = "5" + Eparty[4].graphic[Eparty[4].mode];
-		}
-	}
 	}
 
 	switch (Pcombatants) {
@@ -390,12 +401,12 @@ void stateController::drawCField()
 	}
 	}
 
-	cout << "________________________________\n                                     COMMANDS\n" <<
+	cout << "________________________________\n                                       COMMANDS\n" <<
 		"       " << enemy1 << "         " << player1 <<
-		"    1: Attack\n " << enemy2 << "                            2: Skills\n" <<
-		" " << boss1 << "               " << player2 << "    3: Reactions\n" <<
-		" "<< boss2 << "   " << enemy3 << "      " << player3 << "    4: Items\n" <<
-		" " << boss3 << "               " << player4 << "    5: SPECIAL(N/A)\n" <<
+		"    1: Attack\n"  << enemy2 << "                             2: Skills\n" <<
+		" " << boss1 << "              " << player2 << "    3: Reactions\n" <<
+		" " << boss2 << " " << enemy3 << "      " << player3 << "    4: Items\n" <<
+		" " << boss3 << "              " << player4 << "    5: SPECIAL(N/A)\n" <<
 		" " << enemy4 << "                            6: Defend\n" <<
 		"       " << enemy5 << "         " << player5 << "    7: Flee(N/A)\n" <<
 		"________________________________\n\n";
@@ -587,22 +598,26 @@ bool combatStart(stateController &DM, int group)
 {
 	cleanup();
 	loadEnemy(group, DM.Eparty);
+	int turnCount = 0;
 
-	if (DM.Eparty->Acting > 10)
+	cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+	if (DM.Eparty[0].Acting > 10)
 	{
 		DM.BOSS.Entity = DM.Eparty[0];
 		for (int i = 0; i < 4; i++)
 			DM.BOSS.subEntity[i] = DM.Eparty[i + 1];
 		DM.BOSS.targets = 2; //setTargetAmount function in the future
-		DM.BOSS.subEntPos[1] = 0;
+		DM.BOSS.subEntPos[0] = 1;
+		cout << "Boss " << DM.Eparty[0].name << " attacks!\n";
 	}
-
-	cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-	for (int i = 0; i < 5; i++)
+	else 
 	{
-		if (DM.Eparty[i].StateB != N_A)
+		for (int i = 0; i < 5; i++)
 		{
-			cout << "Enemy " << DM.Eparty[i].name << " appears!   " << DM.Eparty[i].graphic[0] << "\n";
+			if (DM.Eparty[i].StateB != N_A)
+			{
+				cout << "Enemy " << DM.Eparty[i].name << " appears!   " << DM.Eparty[i].graphic[0] << "\n";
+			}
 		}
 	}
 	
@@ -644,8 +659,9 @@ bool combatStart(stateController &DM, int group)
 				break;
 			}
 		}
-
-		
+		turnCount++;
+		//Include a STATcounter check here to reset status buffs/debuffs
+		//The STATcounter resets every time that a new buff or debuff is cast, which can make an interesting strategy
     }
 	if (DM.Elife == false)
 	{
@@ -656,7 +672,11 @@ bool combatStart(stateController &DM, int group)
 		for (int i = 0; i < 5; i++)
 		{
 			if (DM.Eparty[i].StateB != N_A)
+			{
+				DM.Pparty[i].respite();
+				DM.Pparty[i].respite();
 				reward = reward + DM.Eparty[i].EXP;
+			}
 		}
 		cout << "The party gets " << reward << " EXP!\n";
 		sleep(2);
@@ -664,8 +684,9 @@ bool combatStart(stateController &DM, int group)
 		{
 			if (DM.Pparty[i].StateB != N_A)
 			{
+				DM.Pparty[i].resetStats();
 				DM.Pparty[i].EXP = DM.Pparty[i].EXP + reward;
-				if (DM.Pparty[i].EXP >= (DM.Pparty[i].LV * 3) * (DM.Pparty[i].LV * 3))
+				if (DM.Pparty[i].EXP >= (DM.Pparty[i].LV * 3) * DM.Pparty[i].LV) //FORMULA WON'T WORK FOR GAME AS WHOLE, ALTER IT [LV^2 * 3?]
 					DM.Pparty[i].LEVELUP();
 			}
 		}
@@ -890,10 +911,7 @@ void GameState()
 {
 	stateController DM;
 
-	DM.loadPlayer(0);
-	DM.loadPlayer(1);
-
-	DM.setBag();
+	
 
 	int battleGroup;
 	bool check = false;
@@ -904,6 +922,10 @@ void GameState()
 
 	while (check == false)
 	{
+		DM.loadPlayer(0);
+
+		DM.setBag();
+
 		cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nMAIN MENU\n\n1: Start Game\n2: How to Play\n3: Map Test\n4: Shut down\n";
 		int i;
 		cin >> i;
@@ -917,15 +939,36 @@ void GameState()
 		default:
 			cout << "Please choose an option.\n";
 		case 1:
-			combatStart(DM, 5);
-			cout << "Now returning to the main menu...\n\n\n\n\n";
+			cout << "Prepare for the combat gauntlet!\n";
 			sleep(2);
+			cleanup();
+			cout << "ROUND 1: YOUR FIRST FIGHT\n";
+			sleep(1.5);
+			combatStart(DM, 0);
+			cout << "A friend has come to help you!\n";
+			sleep(1.5);
+			cout << "ROUND 2: AGGRESSIVE ATTACKERS\n";
+			sleep(1.5);
+			DM.loadPlayer(1);
+			combatStart(DM, 1);
+			cleanup();
+			cout << "ROUND 3: SUPPORTIVE FRIEND\n";
+			sleep(1.5);
+			combatStart(DM, 2);
+			cleanup();
+			cout << "ROUND 4: WORKING TOGETHER\n";
+			sleep(1.5);
+			combatStart(DM, 3);
+			cout << "The Gauntlet is completed, for now...\n";
+			sleep(2);
+			cleanup();
 			break;
 		case 2:
 			HTP();
 			break;
 		case 3:
 			//Include a "name your own character" feature before jumping in to anything.
+			DM.loadPlayer(1);
 			while (menuBreak == false)
 			{
 				int battleGroup;
@@ -951,6 +994,7 @@ void GameState()
 			for (int i = 0; i < 20; i++)
 			{
 				DM.Pparty[0].LEVELUP();
+				combatStart(DM, 4);
 			}
 		}
 	}
