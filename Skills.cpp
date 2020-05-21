@@ -569,11 +569,11 @@ void SetMove(int NUM, attack loadMe[10], reaction loadMeToo[8])
 	case 4: //Rabbit beta
 	{
 		loadMe[0] = attack(999); //Use Reaction
-		loadMe[1] = attack(16); //Heavy Slam
 		loadMe[2] = attack(998); //Use Defend
+		loadMe[4] = attack(9);   //Plaga
+		loadMe[7] = attack(12);  //Heavy Slam
 
 		loadMeToo[0] = reaction(0); //Bodyguard
-		loadMeToo[1] = reaction(0); //Will be something else when tested
 		break;
 	}
 	}
