@@ -7,6 +7,21 @@ using namespace std;
 
 //The default window size is 30 lines long
 
+void screenAdjust()
+{
+	cout << "  /                                                                                                                 \\  \n" <<
+		" /                                                                                                                   \\ \n" <<
+		"/                                                                                                                     \\\n" <<
+		"\n\n\n\n\n\n\n\n\n\n\n" <<
+		"                Please readjust your window size so that the lines are neatly in each of the corners.\n" <<
+		"                                   When you are done, press ENTER to continue.\n\n\n\n\n\n\n\n\n\n\n\n" <<
+		"\\                                                                                                                     /\n" <<
+		" \\                                                                                                                   / \n" << 
+		"  \\                                                                                                                 /  " ;
+	cin.get();
+	cleanup();
+};
+
 void startupAnim() //38 frames
 {
 	float animTime = (.05);
@@ -263,6 +278,7 @@ void HTP()
 		<< "SONIC  cC(       LIFE  -<3              NECROTIC  X_X       ELDRICH  (@)";
 	sleep(5);
 	cout << "\n\nEvery enemy in the game has different weaknesses and resistances to the different damage types.\n"
+		<< "SONIC skills aren't very powerful, but they will always hit their targets!\n"
 		<< "LIFE skills will always heal the target, unless they are an undead creature.\n"
 		<< "Nothing in the game can resist ELDRICH abilities, but nothing is weak to them either.";
 	sleep(3);
@@ -298,26 +314,65 @@ void cutscene(int num)
 	{
 	case 0: //Hollow Woods ASCII intro
 	{
-		/*What do you see when you dream?
+		/*...What is this?
 			[INPUT NEEDED]
-		  Do you see people you see in the waking world? Close friends who stand by you in every
-		  event, people you haven't seen in years because of distance or death, or perhaps strangers
-		  you have never spoken to, who lurk in the background, watching? Perhaps you see strange
-		  things that defy imagination, things whose forms swim and shift into things both familiar
-		  and bizarre?
-		    [INPUT NEEDED] [ASCII art?]
-		  Tonight, you see a grand city of unrivaled splendor. Giant, towering crystal spires 
-		  crowning great golden, sun-dappled buildings create a shining skyline looming over the
-		  wharves where colorful foreign ships come into port. Polished marble streets stretch on,
-		  reflecting the sun's light and shining brightly. Is this city a real place that you are 
-		  visiting in your mind's eye, or is it perhaps a misremembered place of your past? Does it
-		  even matter which it is, or if it is something completely different?
+		  Is it real? A premonition of the future?
+		  Or maybe this is just a dream...?
 		    [INPUT NEEDED]
-		  As you wander the city, its knights and citizens going about their day, you hear a voice.*/
+		  It's been a few days since the dreams started. Strange yet familiar places zoom by your eyes, 
+		  along with people of every shape and size. Some of these people are familiar to you; students
+		  at the nearby high school, random children you've seen running around your neighborhood. Others 
+		  are strangers you have never met before. You barely recall what happened in these dreams, save 
+		  for certain feelings. Calm friendship. Blistering anger. Anxious fear.
+		    [INPUT NEEDED] [ASCII art?]
+		  Tonight, a grand city of unrivaled splendor unfolds before your eyes. Giant, towering crystal 
+		  spires crowning great golden, sun-dappled buildings create a shining skyline looming over the
+		  wharves where colorful foreign ships come into port. Polished marble streets stretch on,
+		  reflecting the sun's light and shining brightly. It's beautiful, yet familiar. Is this city a 
+		  real place that you are visiting in your mind's eye, or is it perhaps a place you've been before, 
+		  blended with nostalgic memories and hearsay? You do not find any answers in the streets, but the
+		  city radiates a peaceful calm in every nook and cranny.
+		    [INPUT NEEDED]
+		  As you wander the city watching unfamiliar knights and citizens going about their day, a sudden
+		  darkness covers the city. You look up to see something strange; the sun has turned completely
+		  black with only its blazing corona visible around the edges. An eclipse? When you look back down,
+		  you discover all the people have vanished and the street has changed into a straight path.
+		    [INPUT NEEDED]
+		  "-NAME-..."
+			[INPUT NEEDED]
+		  A voice whispers your name down the road...
+		    [INPUT NEEDED]
+		  */
 	}
-	case 1: //It's a squirrel?
+	case 1: //The forest calls you...
 	{
 		/**/
 	}
+	}
+}
+
+void cutscenePlay(string story)
+{
+	for (int i = 0; i < story.length(); i++)
+	{
+		float sleepTime = 0.02;
+		if (story[i] == 46 || story[i] == 33 || story[i] == 63) //Period .   Exclamation !    Question ?
+		{
+			if (story[i + 1] != 46)
+			{
+				sleepTime = .75;
+			}
+		}
+		if (story[i] == 92) //Backslash 
+		{
+			cout << story[i] << story[i + 1];
+			i++;
+		}
+		else
+		{
+			cout << story[i];
+		}
+		//Additional triggers, like additional sleep for periods, input breaks, and line breaks.
+		sleep(sleepTime);
 	}
 }

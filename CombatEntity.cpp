@@ -11,6 +11,18 @@ using namespace std;
    It also includes functions to prepare these entities for battle. */
 //This file currently houses AI functions as well.
 
+BattleEntity::BattleEntity()
+{
+	name = "NONAME";
+	HP = 0;
+	PATK = 0;
+	PDEF = 0;
+	VAR = 0;
+	SPD = 0;
+	StateB = N_A;
+};
+
+
 PCharacter::PCharacter()
 {
 	name = "NONAME";
@@ -25,6 +37,7 @@ PCharacter::PCharacter()
 
 PCharacter::PCharacter(int caseNum)
 {
+	good = true;
 	switch (caseNum)
 	{
 	default:
@@ -45,7 +58,7 @@ PCharacter::PCharacter(int caseNum)
 		CRIT = 3;
 		STATstorage[0] = 5;	STATstorage[1] = 5;	STATstorage[2] = 5;	STATstorage[3] = 5;	STATstorage[4] = 5;	STATstorage[5] = 5;
 		STATmultipliers[0] = 5; STATmultipliers[1] = 3.5; STATmultipliers[2] = .75; STATmultipliers[3] = 1.5; STATmultipliers[4] = 1.5;
-		STATmultipliers[5] = 1.5; STATmultipliers[6] = 1.5; STATmultipliers[7] = 1; STATmultipliers[8] = 1; STATmultipliers[9] = 1;
+		STATmultipliers[5] = 1.5; STATmultipliers[6] = 1.5; STATmultipliers[7] = 2.5; STATmultipliers[8] = 1; STATmultipliers[9] = 1;
 		StateB = FINE;
 		StateG = NONE;
 		Basic = attack(0);
@@ -69,7 +82,7 @@ PCharacter::PCharacter(int caseNum)
 		CRIT = 4;
 		STATstorage[0] = 4;	STATstorage[1] = 5;	STATstorage[2] = 7;	STATstorage[3] = 8;	STATstorage[4] = 5;	STATstorage[5] = 6;
 		STATmultipliers[0] = 4; STATmultipliers[1] = 4.5; STATmultipliers[2] = .5; STATmultipliers[3] = .75; STATmultipliers[4] = 1.5;
-		STATmultipliers[5] = 2.5; STATmultipliers[6] = 4; STATmultipliers[7] = 1; STATmultipliers[8] = 1.5; STATmultipliers[9] = .5;
+		STATmultipliers[5] = 2.5; STATmultipliers[6] = 4; STATmultipliers[7] = 3; STATmultipliers[8] = 1.5; STATmultipliers[9] = .5;
 		StateB = FINE;
 		StateG = NONE;
 		Basic = attack(0);
@@ -97,7 +110,7 @@ void PCharacter::reset()
 
 /*     LEVEL UP FUNCTION     */
 
-void PCharacter::LEVELUP()
+void PCharacter::LEVELUP()//Seems to be a glitch where all the numbers don't load. Gonna have to test this some more
 {
 	cleanup();
 	this->LV++;
@@ -199,11 +212,14 @@ void PCharacter::LEVELUP()
 				statOrg[4] = i;
 				for (int j = 0; j < 4; j++)
 				{
-					if (STATstorage[statOrg[3 - j]] <= STATstorage[statOrg[4 - j]])
+					if (statOrg[3 - j] != 7)
 					{
-						int k = statOrg[4 - j];
-						statOrg[4 - j] = statOrg[3 - j];
-						statOrg[3 - j] = k;
+						if (STATstorage[statOrg[3 - j]] <= STATstorage[statOrg[4 - j]]) 
+						{
+							int k = statOrg[4 - j];
+							statOrg[4 - j] = statOrg[3 - j];
+							statOrg[3 - j] = k;
+						}
 					}
 				}
 			}
@@ -281,10 +297,39 @@ void PCharacter::LEVELUP()
 		STATprogress[i] = STATprogress[i] % 100;
 		cout << totalStorage[i] << "  ";
 	}
+	this->resetStats();
 	cout << "\nHP  MP  ST  PA MA PD MD SP VA CR\nPress any key to continue.\n";
 	cin.get();
 }
 
+
+bool BattleEntity::timeTick()
+{
+    int tickAmount = this->SPD;
+	int Chance = rand() % 100;
+
+	tickAmount = tickAmount / 5;
+	tickAmount = tickAmount + 15;
+	if(Chance < (this->SPD % 5 * 20)) 
+	    tickAmount = tickAmount + 1;
+	this->turnTimer = this->turnTimer + tickAmount;
+
+	if(this->turnTimer > 500)
+	    this->turnTimer = this->turnTimer - 500;
+		return true;
+	return false;
+};
+
+void PCharacter::resetStats()
+{
+	this->PATK = this->totalStorage[3];
+	this->MATK = this->totalStorage[4];
+	this->PDEF = this->totalStorage[5];
+	this->MDEF = this->totalStorage[6];
+	this->SPD = this->totalStorage[7];
+	this->VAR = this->totalStorage[8];
+	this->CRIT = this->totalStorage[9];
+}
 
 
 void loadStats(PCharacter &entity)
@@ -302,7 +347,6 @@ void loadStats(PCharacter &entity)
 
 	entity.Basic.delivery = entity.stick.strike;
 }
-
 
 
 ECharacter::ECharacter()
@@ -325,6 +369,7 @@ ECharacter::ECharacter()
 
 ECharacter::ECharacter(int casenum) // Here be all the different types of enemies until I find a more elegant solution
 {
+	good = false;
 	switch (casenum)
 	{
 	default:
@@ -336,21 +381,21 @@ ECharacter::ECharacter(int casenum) // Here be all the different types of enemie
 		HP = 25;
 		MP = 100;
 		STAM = 30;
-		PATK = 8;
+		PATK = 9;
 		MATK = 5;
 		PDEF = 2;
 		MDEF = 4;
 		SPD = 4;
-		VAR = 2;
+		VAR = 4;
 		CRIT = 4;
 		StateB = FINE;
 		StateG = NONE;
 		Basic = attack(0);
-		Stick = weapon(2);
-		resist[2] = 1.5; resist[8] = .5;
+		stick = weapon(2);
+		resist[2] = WEAK; resist[8] = RESISTANT;
 		Acting = AGG;
 		DANGERamt = 8;
-		graphic[0] = " 0>  "; graphic[1] = " O>  ";
+		graphic[0] = "0>   "; graphic[1] = "O>   ";
 		SetMove(2, this->moveset, this->react);
 		break;
 	}
@@ -358,36 +403,37 @@ ECharacter::ECharacter(int casenum) // Here be all the different types of enemie
 	{
 		name = "Songbird";
 		EXP = 7;
-		HP = 15;
+		HP = 18;
 		MP = 100;
 		STAM = 20;
 		PATK = 6;
-		MATK = 8;
+		MATK = 10;
 		PDEF = 0;
 		MDEF = 8;
 		SPD = 6;
-		VAR = 4;
+		VAR = 7;
 		CRIT = 4;
 		StateB = FINE;
 		StateG = NONE;
 		Basic = attack(0);
-		Stick = weapon(2);
-		resist[3] = 1.5; resist[4] = 1.5; resist[5] = .5; resist[6] = .5;
+		stick = weapon(2);
+		resist[3] = WEAK; resist[4] = WEAK; resist[5] = RESISTANT; resist[6] = RESISTANT;
 		Acting = SUP;
 		DANGERamt = 10;
-		graphic[0] = " )0  "; graphic[1] = " )0  "; graphic[2] = " )0  ";
+		graphic[0] = ")0   "; graphic[1] = ")0   "; graphic[2] = ")0   ";
 		SetMove(3, this->moveset, this->react);
 		break;
 	}
 	case 2:
 	{
 		name = "Rabbit";
+		EXP = 16;
 		HP = 30;
 		MP = 100;
 		STAM = 30;
-		PATK = 6;
-		MATK = 2;
-		PDEF = 16;
+		PATK = 8;
+		MATK = 4;
+		PDEF = 10;
 		MDEF = 0;
 		SPD = 4;
 		VAR = 5;
@@ -395,18 +441,19 @@ ECharacter::ECharacter(int casenum) // Here be all the different types of enemie
 		StateB = FINE;
 		StateG = NONE;
 		Basic = attack(0);
-		Stick = weapon(3);
-		resist[1] = .5; resist[2] = .5; resist[3] = 1.5; resist[6] = 1.5;
+		stick = weapon(3);
+		resist[1] = RESISTANT; resist[2] = RESISTANT; resist[3] = WEAK; resist[6] = WEAK;
 		Acting = DEF;
 		DANGERamt = 10;
-		graphic[0] = " 03  "; graphic[1] = " O3  "; graphic[2] = " }03 ";
-		SetMove(4, this->moveset, this->react); //Check this out later, ensure correct moves
+		graphic[0] = "03   "; graphic[1] = "O3   "; graphic[2] = "}03  ";
+		SetMove(4, this->moveset, this->react);
 		break;
 	}
 	case 3:
 	{
 		name = "Owl";
 		//WILL DETERMINE LATER
+		EXP = 0;
 		HP = 20;
 		MP = 100;
 		STAM = 50;
@@ -420,45 +467,45 @@ ECharacter::ECharacter(int casenum) // Here be all the different types of enemie
 		StateB = FINE;
 		StateG = NONE;
 		Basic = attack(0);
-		Stick = weapon(2);
-		resist[3] = 1.5; resist[4] = 1.5; resist[5] = .5; resist[6] = .5;
+		stick = weapon(2);
+		resist[3] = WEAK; resist[4] = WEAK; resist[5] = RESISTANT; resist[6] = RESISTANT;
 		Acting = SUP;
 		DANGERamt = 10;
-		graphic[0] = " )0  "; graphic[1] = " }0  ";
+		graphic[0] = ")0>  "; graphic[1] = "}0>  ";
 		SetMove(3, this->moveset, this->react);
 		break;
 	}
 	case 4:
 	{
 		name = "Deer";
-		//WILL DETERMINE LATER
-		HP = 20;
+		EXP = 50;
+		HP = 70;
 		MP = 100;
-		STAM = 50;
-		PATK = 8;
-		MATK = 5;
-		PDEF = 2;
-		MDEF = 5;
-		SPD = 5;
-		VAR = 3;
-		//END OF DETERMINING LATER
+		STAM = 75;
+		PATK = 18;
+		MATK = 12;
+		PDEF = 8;
+		MDEF = 6;
+		SPD = 18;
+		VAR = 10;
 		StateB = FINE;
 		StateG = NONE;
 		Basic = attack(0);
-		Stick = weapon(2);
-		resist[3] = 1.5; resist[4] = 1.5; resist[5] = .5; resist[6] = .5;
-		Acting = SUP;
+		stick = weapon(2);
+		resist[3] = WEAK; resist[4] = WEAK; resist[5] = RESISTANT; resist[6] = RESISTANT;
+		Acting = AGG;
 		DANGERamt = 10;
-		graphic[0] = " )0  "; graphic[1] = " }0  ";
+		graphic[0] = "<(){ "; graphic[1] = "<(){ ";
 		SetMove(3, this->moveset, this->react);
 		break;
 	}
 	case 5:
 	{
 		name = "Hollow Geist";
+		EXP = 150;
 		HP = 256;
 		MP = 100;
-		STAM = 70;
+		STAM = 60;
 		PATK = 20;
 		MATK = 16;
 		PDEF = 32;
@@ -473,13 +520,14 @@ ECharacter::ECharacter(int casenum) // Here be all the different types of enemie
 		DANGERamt = 60;
 		graphic[0] = "('$-) ";
 		graphic[1] = " | |-E";
-		graphic[2] = "/   \ ";
+		graphic[2] = "/   \\ ";
+		graphic[3] = "";
 		break;
 	}
 	case 6:
 	{
 		name = "Hollow Mask";
-		HP = 104;
+		HP = 20;//104;
 		MP = 0;
 		STAM = 0;
 		PATK = 0;
@@ -507,7 +555,7 @@ void ECharacter::display()
 	switch (Acting)
 	{
 	default:
-		atktype = "Aggressive";
+		atktype = "?!?!?";
 		break;
 	case 1:
 		atktype = "Aggressive";
@@ -556,7 +604,7 @@ void ECharacter::display()
 	if (resist[8] == 2)
 		weakness = weakness + " NECROTIC";
 	cout << "Name: " << name << "\nTotal health: " << totalStorage[0] <<
-		"\nCombat Style: " << atktype << "\nWeaknesses: " << weakness << "\n\n";
+		"\nCombat Style: " << atktype << "\nWeaknesses:" << weakness << "\n\n";
 }
 
 void loadStats(ECharacter &entity)
@@ -572,7 +620,7 @@ void loadStats(ECharacter &entity)
 	entity.totalStorage[8] = entity.VAR;
 	entity.totalStorage[9] = entity.CRIT;
 
-	entity.Basic.delivery = entity.Stick.strike;
+	entity.Basic.delivery = entity.stick.strike;
 }
 
 void loadEnemy(int choice, ECharacter eParty[])
@@ -587,7 +635,6 @@ void loadEnemy(int choice, ECharacter eParty[])
 	}
 	case 1:
 	{
-		cout << "LOADING SQUIRRELS THREE\n";
 		eParty[0] = ECharacter(0);
 		loadStats(eParty[0]);
 		eParty[0].name = eParty[0].name + " 1";

@@ -12,12 +12,14 @@ class stateController {
 public:
 	PCharacter Pparty[4];
 	ECharacter Eparty[5];
+	BattleEntity ALLPLAYER[10];
 	boss BOSS;
-	item Bag[10];
+	item Bag[20];
 	int turnOrder[15]{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,};
 	bool Plife = true;
 	bool Elife = true;
 
+	Level currLevel;
 	Occupant player;
 	Tile map[500];
 	int currMap = -1;
@@ -25,13 +27,10 @@ public:
 	int tempStorage1[50]{ 0 }; //For storing tiles that need to be edited
 	int tempStorage2[50]{ 0 }; //For storing the edits to perform on the tiles
 public:
-	int SPDavg();
-	int SPDlow();
 	void setBag();
-	void SPDorder(int, int);
 	void drawCField();
 	void loadPlayer(int);
-
+	void loadBattleArray();
 };
 
 void GameState();
@@ -39,13 +38,17 @@ bool combatStart(stateController &, int);
 int exploreStart(stateController &, int, bool, int);
 void SPDcalc(stateController &);
 void nextTurn(stateController &, int);
-bool occCollide(Tile *, int); 
-void exploreAction(Tile); //Unimplemented, for determining what happens when choosing to interact
-void HTP();
-void cutscene(int);
+bool occCollide(Tile *, int, Level &, bool &); 
+bool exploreAction(Tile, stateController &); //Unimplemented, for determining what happens when choosing to interact
 
 //For the animation file
 void startupAnim();
+void screenAdjust();
+
+void HTP();
+void cutscene(int);
+
+void cutscenePlay(string);
 
 /*MC stats
 HP: 30

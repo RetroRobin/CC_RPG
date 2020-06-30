@@ -623,3 +623,8 @@ reaction ECharacter::reactSelect(int target)
 	cout << target << "\n";
 	return choice;
 }
+
+void badChild(ECharacter &enemy)
+{
+	enemy.display();
+}

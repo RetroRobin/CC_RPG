@@ -25,7 +25,7 @@ attack::attack()
 	DESC = "means that this is not a real ability.";
 }
 
-attack::attack(int atkNum)
+attack::attack(int atkNum) //Okay, organizing this will be fun... Organize by damage type?
 {
 	switch (atkNum)
 	{
@@ -53,6 +53,26 @@ attack::attack(int atkNum)
 	}
 	case(1):
 	{
+		TAG = "Scan";
+		mult = 0;
+		amount = 1;
+		MPcost = 2;
+		STAMcost = 5;
+		victim = SINGLE;
+		magic = true;
+		ATK = true;
+		support = false;
+		accuracy = 200;
+		type1 = ELD;
+		type2 = ELD;
+		delivery = ENERGY;
+		rules = SPELL;
+		name = "scrutinizes the enemy!";
+		DESC = "reveals an opponent's weaknesses.";
+		break;
+	}
+	case(2):
+	{
 		TAG = "Triple Slash";
 		mult = 1;
 		amount = 3;
@@ -71,7 +91,7 @@ attack::attack(int atkNum)
 		DESC = "attacks the enemy three times with a sharp weapon.";
 		break;
 	}
-	case(2):
+	case(3):
 	{
 		TAG = "Combo Strike";
 		mult = 1;
@@ -91,12 +111,12 @@ attack::attack(int atkNum)
 		DESC = "attacks the enemy three times with a blunt weapon.";
 		break;
 	}
-	case(3):
+	case(4):
 	{
 		TAG = "Lume ";
 		mult = 1.5;
 		amount = 1;
-		MPcost = 5;
+		MPcost = 3;
 		STAMcost = 5;
 		victim = SINGLE;
 		magic = true;
@@ -111,12 +131,12 @@ attack::attack(int atkNum)
 		DESC = "summons a ring of fire to burn an enemy.";
 		break;
 	}
-	case(4):
+	case(5):
 	{
 		TAG = "Xeo  ";
 		mult = 1.5;
 		amount = 1;
-		MPcost = 5;
+		MPcost = 3;
 		STAMcost = 5;
 		victim = SINGLE;
 		magic = true;
@@ -131,12 +151,12 @@ attack::attack(int atkNum)
 		DESC = "summons icicles to attack the enemy";
 		break;
 	}
-	case(5):
+	case(6):
 	{
 		TAG = "Raio ";
 		mult = 1.5;
 		amount = 1;
-		MPcost = 5;
+		MPcost = 3;
 		STAMcost = 5;
 		victim = SINGLE;
 		magic = true;
@@ -151,12 +171,12 @@ attack::attack(int atkNum)
 		DESC = "summons a burst of electricity to attack an enemy.";
 		break;
 	}
-	case(6):
+	case(7):
 	{
 		TAG = "Vento";
 		mult = 1.5;
 		amount = 1;
-		MPcost = 5;
+		MPcost = 3;
 		STAMcost = 5;
 		victim = SINGLE;
 		magic = true;
@@ -171,12 +191,12 @@ attack::attack(int atkNum)
 		DESC = "summons a gale to throw the enemy.";
 		break;
 	}
-	case(7):
+	case(8):
 	{
 		TAG = "Haya ";
 		mult = -2;
 		amount = 0;
-		MPcost = 5;
+		MPcost = 3;
 		STAMcost = 5;
 		victim = SINGLE;
 		magic = true;
@@ -191,12 +211,12 @@ attack::attack(int atkNum)
 		DESC = "soothes a friend with healing energy.";
 		break;
 	}
-	case(8):
+	case(9):
 	{
 		TAG = "Plaga";
 		mult = 1.5;
 		amount = 1;
-		MPcost = 5;
+		MPcost = 3;
 		STAMcost = 5;
 		victim = SINGLE;
 		magic = true;
@@ -211,18 +231,18 @@ attack::attack(int atkNum)
 		DESC = "grips an enemy with the chill of death.";
 		break;
 	}
-	case(9):
+	case(10):
 	{
 		TAG = "Sonic Blade";
-		mult = 1.5;
+		mult = 1;
 		amount = 1;
-		MPcost = 8;
+		MPcost = 5;
 		STAMcost = 10;
 		victim = ADJACENT;
 		magic = false;
 		ATK = true;
 		support = false;
-		accuracy = 89;
+		accuracy = 200;
 		type1 = SON;
 		type2 = SLH;
 		delivery = PROJECTILE;
@@ -231,18 +251,18 @@ attack::attack(int atkNum)
 		DESC = "slashes several enemies from a distance with sound.";
 		break;
 	}
-	case(10):
+	case(11):
 	{
 		TAG = "Sonic Shout";
 		mult = 1;
 		amount = 1;
-		MPcost = 8;
+		MPcost = 5;
 		STAMcost = 13;
 		victim = ALL;
 		magic = true;
 		ATK = true;
 		support = false;
-		accuracy = 89;
+		accuracy = 200;
 		type1 = SON;
 		type2 = SLH;
 		delivery = ENERGY;
@@ -251,32 +271,33 @@ attack::attack(int atkNum)
 		DESC = "damages all enemies with a sonic wave.";
 		break;
 	}
-	case(11):
+	
+	case(12):
 	{
-		TAG = "Scan";
-		mult = 0;
+		TAG = "Heavy Slam";
+		mult = 3;
 		amount = 1;
-		MPcost = 2;
-		STAMcost = 5;
+		MPcost = 0;
+		STAMcost = 25;
 		victim = SINGLE;
-		magic = true;
+		magic = false;
 		ATK = true;
 		support = false;
-		accuracy = 200;
-		type1 = ELD;
-		type2 = ELD;
-		delivery = ENERGY;
-		rules = SPELL;
-		name = "scrutinizes the enemy!";
-		DESC = "reveals an opponent's weaknesses.";
+		accuracy = 60;
+		type1 = FRC;
+		type2 = FRC;
+		delivery = MELEE;
+		rules = WEAPON_USE;
+		name = " charged into the target!";
+		DESC = "deals a lot of force damage to one target, if it hits.";
 		break;
 	}
-	case(12):
+	case(13):
 	{
 		TAG = "Exofri";
 		mult = 0;
-		amount = 7;
-		MPcost = 10;
+		amount = 7; //Will change when I figure out how this spell will work to improve throughout the whole game.
+		MPcost = 8;
 		STAMcost = 0;
 		victim = SINGLE;
 		magic = true;
@@ -292,29 +313,70 @@ attack::attack(int atkNum)
 		DESC = "raises a single ally's physical attack.";
 		break;
 	}
-	//case(13):   DEFENSE UP
-	//case(14):   M. ATTACK UP
-	//case(15):   M. DEFENSE UP
-	case(16):
+	case(14):
 	{
-		TAG = "Heavy Slam";
-		mult = 1;
-		amount = 3;
-		MPcost = 0;
-		STAMcost = 25;
+		TAG = "Myalofri";
+		mult = 0;
+		amount = 7;
+		MPcost = 8;
+		STAMcost = 0;
 		victim = SINGLE;
-		magic = false;
-		ATK = true;
+		magic = true;
+		ATK = false;
 		support = false;
-		accuracy = 70;
-		type1 = FRC;
-		type2 = FRC;
-		delivery = MELEE;
-		rules = WEAPON_USE;
-		name = " charged into the target!";
-		DESC = "deals a lot of force damage to one target, if it hits.";
+		accuracy = 200;
+		type1 = FIR;
+		type2 = FIR;
+		delivery = ENERGY;
+		rules = SPELL;
+		statEffect = 2;
+		name = "uses Myalofri!";
+		DESC = "raises a single ally's magical attack.";
 		break;
 	}
+	case(15):
+	{
+		TAG = "Ponofri";
+		mult = 0;
+		amount = 7;
+		MPcost = 8;
+		STAMcost = 0;
+		victim = SINGLE;
+		magic = true;
+		ATK = false;
+		support = false;
+		accuracy = 200;
+		type1 = FIR;
+		type2 = FIR;
+		delivery = ENERGY;
+		rules = SPELL;
+		statEffect = 3;
+		name = "uses Ponofri!";
+		DESC = "raises a single ally's physical defense.";
+		break;
+	}
+	case(16):
+	{
+		TAG = "Skepfri";
+		mult = 0;
+		amount = 7;
+		MPcost = 8;
+		STAMcost = 0;
+		victim = SINGLE;
+		magic = true;
+		ATK = false;
+		support = false;
+		accuracy = 200;
+		type1 = FIR;
+		type2 = FIR;
+		delivery = ENERGY;
+		rules = SPELL;
+		statEffect = 4;
+		name = "uses Skepfri!";
+		DESC = "raises a single ally's magical defense.";
+		break;
+	}
+	
 	//DEFENSE-UP, SPEED-UP, and all the "DOWN" spells should be here, for categorizing.
 	//Stat-healing spells are here. Most include a STAM recovery along with them.
 	//Revival spell
@@ -334,7 +396,7 @@ attack::attack(int atkNum)
 		magic = false;
 		ATK = false;
 		support = false;
-		accuracy = -1;
+		accuracy = 0;
 		type1 = SLH;
 		type2 = SLH;
 		delivery = MELEE;
@@ -354,7 +416,7 @@ attack::attack(int atkNum)
 		magic = false;
 		ATK = true;
 		support = false;
-		accuracy = -1;
+		accuracy = 0;
 		type1 = SLH;
 		type2 = SLH;
 		delivery = MELEE;
@@ -533,10 +595,10 @@ void SetMove(int NUM, attack loadMe[10], reaction loadMeToo[8])
 		break;
 	case 0: //Eric\a beta
 	{
-		loadMe[0] = attack(11); //Scan
-		loadMe[1] = attack(1); //Triple Slash
-		loadMe[2] = attack(9); //Sonic Blade
-		loadMe[3] = attack(10); //Sonic Shout
+		loadMe[0] = attack(1); //Scan
+		loadMe[1] = attack(2); //Triple Slash
+		loadMe[2] = attack(10); //Sonic Blade
+		loadMe[3] = attack(11); //Sonic Shout
 
 		loadMeToo[0] = reaction(0); //Bodyguard
 		loadMeToo[1] = reaction(1); //Counter 
@@ -545,10 +607,10 @@ void SetMove(int NUM, attack loadMe[10], reaction loadMeToo[8])
 	}
 	case 1: //Chloe beta 
 	{
-		loadMe[0] = attack(3); //Lume
-		loadMe[1] = attack(4); //Xeo
-		loadMe[2] = attack(7); //Haya
-		loadMe[3] = attack(12); //Exofri
+		loadMe[0] = attack(4); //Lume
+		loadMe[1] = attack(5); //Xeo
+		loadMe[2] = attack(8); //Haya
+		loadMe[3] = attack(13); //Exofri
 
 		loadMeToo[0] = reaction(0); //Bodyguard
 		loadMeToo[1] = reaction(1); //Counter (may change to interrupt)
@@ -556,14 +618,14 @@ void SetMove(int NUM, attack loadMe[10], reaction loadMeToo[8])
 	}
 	case 2: //Squirrel beta
 	{
-		loadMe[0] = attack(1); //Triple Slash
+		loadMe[0] = attack(2); //Triple Slash
 		break;
 	}
 	case 3: //Songbird beta
 	{
-		loadMe[0] = attack(6); //Vento
-		loadMe[1] = attack(12); //Exofri
-		loadMe[2] = attack(7); //Haya
+		loadMe[0] = attack(7); //Vento
+		loadMe[1] = attack(13); //Exofri
+		loadMe[2] = attack(8); //Haya
 		break;
 	}
 	case 4: //Rabbit beta
@@ -575,6 +637,14 @@ void SetMove(int NUM, attack loadMe[10], reaction loadMeToo[8])
 
 		loadMeToo[0] = reaction(0); //Bodyguard
 		break;
+	}
+	case 5: //Owl beta
+	{
+		break;
+	}
+	case 6: //Deer beta
+	{
+
 	}
 	}
 }

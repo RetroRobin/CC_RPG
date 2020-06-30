@@ -25,128 +25,23 @@ void stateController::setBag()
 	this->Bag[4].currAmount = 3;
 }
 
-//Averages the total speed of combatants for turn order calculations
-int stateController::SPDavg() 
+void stateController::loadBattleArray()
 {
-	int avg = 0;
-	int combatants = 0;
+	int counter = 0;
 	for (int i = 0; i < 4; i++)
 	{
-		if (this->Pparty[i].StateB != N_A && this->Pparty[i].StateB != DEAD)
-		{
-			avg = avg + this->Pparty[i].SPD;
-			combatants++;
-		}	
+		Pparty[i].turnTimer = 0;
+		ALLPLAYER[counter] = Pparty[i];
+		counter++;
 	}
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 5; i++) //May alter depending on enemy count
 	{
-		if (this->Eparty[i].StateB == N_A || this->Eparty[i].StateB == DEAD)
-			break;
-		avg = avg + this->Eparty[i].SPD;
-		combatants++;
+		Eparty[i].turnTimer = 0;
+		ALLPLAYER[counter] = Eparty[i];
+		counter++;
 	}
-
-	avg = avg / combatants;
-	return avg;
 }
 
-//Determines the slowest combatant for turn order calculations
-int stateController::SPDlow() 
-{
-	int lowest = 999;
-	for (int i = 0; i < 4; i++)
-	{
-		if (this->Pparty[i].StateB != N_A && this->Pparty[i].StateB != DEAD)
-		{
-			if (this->Pparty[i].SPD < lowest)
-				lowest = this->Pparty[i].SPD;
-		}
-	}
-	for (int i = 0; i < 5; i++)
-	{
-		if (this->Eparty[i].StateB == N_A || this->Eparty[i].StateB == DEAD)
-			break;
-		if (this->Eparty[i].SPD < lowest)
-			lowest = this->Eparty[i].SPD;
-	}
-	return lowest;
-}
-
-//Determines order of combatants based on speed data
-void stateController::SPDorder(int spdAVG, int spdLOW) 
-{
-	int SPDcomp = 999; //Used to ignore combatants who have already been sorted
-	int SPDinsert = 0;
-	int tieARR[9];
-	int tieCount = 0;
-	int change = 0;
-	int combatants = 0;
-
-	while (change >= 0)
-	{
-		change = -1;
-		for (int i = 0; i < 4; i++) //Checks highest speed [PARTY] Takes slots [0, 1, 2, 3]
-		{
-			if (this->Pparty[i].StateB != N_A && this->Pparty[i].StateB != DEAD)
-			{
-				if (this->Pparty[i].SPD < SPDcomp)
-					if (this->Pparty[i].SPD > SPDinsert)
-					{
-						SPDinsert = this->Pparty[i].SPD;
-						change = i;
-					}
-					else
-					{
-						if (this->Pparty[i].SPD == SPDinsert) //Tie for highest speed?
-						{
-							tieARR[tieCount] = i;
-							tieCount++;
-						}
-					}
-			}
-		}
-			
-		for (int i = 0; i < 5; i++) //Checks highest speed [ENEMY] Takes slots [4, 5, 6, 7, 8]
-		{
-			if (this->Eparty[i].StateB != N_A && this->Eparty[i].StateB != DEAD)
-			{
-				if (this->Eparty[i].SPD < SPDcomp)
-					if (this->Eparty[i].SPD > SPDinsert)
-					{
-						SPDinsert = this->Eparty[i].SPD;
-						change = i + 4;
-					}
-					else
-					{
-						if (this->Eparty[i].SPD == SPDinsert)
-						{
-							tieARR[tieCount] = i + 4;
-							tieCount++;
-						}
-					}
-			}
-		}
-		if (change >= 0)
-		{
-			this->turnOrder[combatants] = change + 1;
-			combatants++;
-		}
-		if (tieCount > 0)
-		{
-			for (int i = 0; i < tieCount; i++)
-			{
-				this->turnOrder[combatants] = tieARR[i] + 1;
-				combatants++;
-			}
-		}
-		tieCount = 0;
-		SPDcomp = SPDinsert;
-		SPDinsert = 0;
-
-		
-	}
-	
-}
 
 //Creates graphics for the battle plane based on symbols attached to character objects
 void stateController::drawCField() 
@@ -429,6 +324,7 @@ void stateController::loadPlayer(int playerNum)
 }
 
 //Determine who goes next, an enemy or a party member
+//Determine if we still need this function
 void nextTurn(stateController &DM, int player) 
 {
 	player--;
@@ -443,8 +339,13 @@ void nextTurn(stateController &DM, int player)
 		if (DM.Pparty[player].StateB == DEAD)
 			return;
 		DM.Pparty[player].respite();
-		DM.drawCField();
-		DM.Pparty[player].takeTurn(DM.Pparty, DM.Eparty, DM.Bag);
+		//While loop here, so that the field gets redrawn
+		bool loop = false;
+		while (loop == false)
+		{
+			DM.drawCField();
+			loop = DM.Pparty[player].takeTurn(DM.Pparty, DM.Eparty, DM.Bag);
+		}
 	}
 	else
 	{
@@ -455,7 +356,7 @@ void nextTurn(stateController &DM, int player)
 
 //Determines the effect of stepping on occupied tiles in the field
 //False keeps you on the field, True kicks you out to a different mode
-bool occCollide(Tile *collisionSite, int direction)
+bool occCollide(Tile *collisionSite, int direction, Level &currLevel, bool &transition)
 {
 	switch (collisionSite->tenant.type)
 	{
@@ -473,12 +374,14 @@ bool occCollide(Tile *collisionSite, int direction)
 				if (collisionSite->adjacent[direction]->tenant.type == 0)
 				{
 					collisionSite->adjacent[direction]->tenant = collisionSite->tenant;
+					currLevel.currRoom.editCode[collisionSite->adjacent[direction]->location + 1] = 55;
 					collisionSite->tenant = Occupant();
+					currLevel.currRoom.editCode[collisionSite->location + 1] = 49;
 					return false;
 				}
 			}
 		}
-		cout << "\nThe log won't move.\n";
+		cout << "\nThe log won't move from this side.\n";
 		sleep(2);
 		break;
 	}
@@ -491,7 +394,9 @@ bool occCollide(Tile *collisionSite, int direction)
 				if (collisionSite->adjacent[direction]->tenant.type == 0)
 				{
 					collisionSite->adjacent[direction]->tenant = collisionSite->tenant;
+					currLevel.currRoom.editCode[collisionSite->adjacent[direction]->location + 1] = 56;
 					collisionSite->tenant = Occupant();
+					currLevel.currRoom.editCode[collisionSite->location + 1] = 49;
 					return false;
 				}
 			}
@@ -504,28 +409,46 @@ bool occCollide(Tile *collisionSite, int direction)
 	{
 		cout << "\nIt's an attack!\n";
 		sleep(2);
+		currLevel.currRoom.editCode[collisionSite->location + 1] = 49;
+		currLevel.currRoom.editCode[collisionSite->location + 2] = 0;
 		return true;
 	}
 	case 5: //water
 	{
-		cout << "You can't swim, so you probably shouldn't go in the water...\n";
-		sleep(2);
+		cout << "\nA body of water blocks your path, flowing swiftly. You see no way of crossing it...\n";
+		sleep(3);
 		return false;
 	}
 	case 7: //Transition
 	{
-		cout << "\n\n\nThis tile will eventually take you to another map. \nFor right now, it will take you back to the main menu.\n\n";
+		//Oh boy, BIG fixes here
+		cleanup();
+		//ASCII image here?
+		string tranText = currLevel.roomChange + "\nWould you like to keep going?\n\n";
+		cutscenePlay(tranText);
+		cout << "1 - YES\n2 - NO\n";
+		int choice;
+		cin >> choice;
+		if (choice != 1)
+		{
+			cin.clear();
+			cin.ignore(1024, '\n');
+			break;
+		}
+		cleanup();
+		cout << " N O W   L O A D I N G . . .";
 		sleep(3);
-		cout << "Sending you back to the main menu...\n";
-		sleep(2);
-		return true;
+
+		transition = true;
+		break;
 	}
+	//Case for cutscene triggers
 	}
 	return false;
 }
 
 //Interacts with a tile's type when the Examine command is used
-void exploreAction(Tile examine)
+bool exploreAction(Tile examine, stateController &DM)
 {
 	switch (examine.type)
 	{
@@ -541,6 +464,7 @@ void exploreAction(Tile examine)
 	}
 	case 2: //Vine/switch
 	{
+		//This will require a base edit of the room to remove the switch and leave its effects.
 		//Need some way of altering blocked tiles or changing tile types here...
 		cout << "\nLooks like a switch of some kind. Too bad you can't interact with it yet.\n";
 		sleep(3);
@@ -555,9 +479,60 @@ void exploreAction(Tile examine)
 	}
 	case 4: //Treasure box
 	{
-		//Spawn an item based off the EXTRA value of the tile, then add it to the DM.bag
-		cout << "\nOoh, it looks like there may be an item there eventually! ...But not now.\n";
-		sleep(3);
+		string tranText = DM.currLevel.boxOpen + "\n\n";
+		cutscenePlay(tranText);
+		cout << "1 - YES\n2 - NO\n";
+		int choice;
+		cin >> choice;
+		if (choice != 1)
+		{
+			cin.clear();
+			cin.ignore(1024, '\n');
+			return false;
+		}
+
+		bool canPick = false;
+		int identifier = 0;
+		for (int i = 0; i < 20; i++)
+		{
+			if(DM.Bag[i].ID == examine.extra)
+			{
+				DM.Bag[i].currAmount++;
+				if(DM.Bag[i].currAmount > DM.Bag[i].maxAmount)
+				{
+					DM.Bag[i].currAmount--;
+					break;
+				}
+				canPick = true;
+				break;
+			}
+			if(DM.Bag[i].effect == -1)
+			{
+				DM.Bag[i] = item(i);
+				DM.Bag[i].currAmount = 1;
+				canPick = true;
+				break;
+			}
+			identifier++;
+		}
+		tranText = "You got a " + DM.Bag[identifier].name + "!";
+		cutscenePlay(tranText);
+		sleep(1);
+		if (canPick == true)
+		{
+			//Detonate the box
+			DM.currLevel.tweasure[DM.currLevel.currRoom.treasures[examine.editNum]] = false;
+			DM.currLevel.currRoom.editCode[examine.location + 1] = 49;
+			DM.currLevel.currRoom.editCode[examine.location + 2] = 0;
+			DM.currLevel.currRoom.editCode[examine.location + 3] = 0;
+			return true;
+		}
+		else
+		{
+			tranText = "...But you can't carry it with you...\n";
+			cutscenePlay(tranText);
+			sleep(1);
+		}
 		break;
 	}
 	case 5: //water
@@ -574,22 +549,32 @@ void exploreAction(Tile examine)
 		break;
 	}
 	}
+	return false;
 }
 
 //Resets turn order and aggregates the speed calculations into one function
 void SPDcalc(stateController &DM)
 {
-	int i = 0;
-	while (DM.turnOrder[i] >= 0)
+	for (int i = 0; i < 15; i++)
 	{
 		DM.turnOrder[i] = -1;
-		i++;
 	}
-	int avg = DM.SPDavg();
-	//cout << "SPD average = " << avg << "\n";   //DEBUG NOTES
-	int lowest = DM.SPDlow();
-	//cout << "SPD lowest = " << lowest << "\n";
-	DM.SPDorder(avg, lowest);
+
+	int i = 0;
+	while (i < 7)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			if (DM.ALLPLAYER[j].StateB != N_A)
+			{
+				if (DM.ALLPLAYER[j].timeTick() == true)
+				{
+					DM.turnOrder[i] = j + 1;
+					i++;
+				}
+			}
+		}
+	}
 }
 
 //Master control for Combat. Sets up combatants and controls all Combat functions
@@ -599,6 +584,7 @@ bool combatStart(stateController &DM, int group)
 	cleanup();
 	loadEnemy(group, DM.Eparty);
 	int turnCount = 0;
+	DM.loadBattleArray();
 
 	cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 	if (DM.Eparty[0].Acting > 10)
@@ -624,12 +610,15 @@ bool combatStart(stateController &DM, int group)
 	while ((DM.Plife == true) && (DM.Elife == true))
 	{
 		SPDcalc(DM);
-		int i = 0;
-		/*while (DM.turnOrder[i] >= 0)
+
+		//DEBUG
+		/*int i = 0;
+		while (DM.turnOrder[i] >= 0)
 		{
 			cout << DM.turnOrder[i] << "\n";
 			i++;
 		}*/
+		//DEBUG
 
 		int playernum = 0;
 		while (DM.turnOrder[playernum] >= 0)
@@ -711,12 +700,12 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 	Tile *locale;
 	if (resume == true) //Are we returning from a battle/save?
 	{
-		locale = loadMap(thisMap, false, restartHere, DM.tempStorage2, DM.tempStorage1);
+		locale = loadMap(DM.currLevel.roomNums[thisMap], false, restartHere, DM.currLevel);
 		locale->tenant = DM.player;
 	}
 	else
 	{
-		locale = loadMap(thisMap, false, -1, NULL, NULL);
+		locale = loadMap(DM.currLevel.roomNums[thisMap], false, -1, DM.currLevel);
 		for (int i = 0; i < 4; i++)
 		{
 			int mod;
@@ -724,9 +713,13 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 				mod = 1;
 			else
 				mod = -1;
-			locale->adjacent[i]->adjacent[i + mod] = locale;
+			if (locale->adjacent[i] != NULL)
+			{
+				locale->adjacent[i]->adjacent[i + mod] = locale;
+			}
 		}
 		cutscene(thisMap);
+		//Wipe old player start from the editcode using locale.location
 	}
 
 
@@ -734,11 +727,12 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 	int mapHere = thisMap;
 	bool winCondition = false;
 	bool battle = false;
+	bool transition = false;
 	char choice;
 
 	while (winCondition == false) 
 	{
-		mapDraw(*locale);
+		mapDraw(*locale, DM.currLevel.name);
 		cin >> choice;
 		switch (choice)
 		{
@@ -746,11 +740,25 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 		{
 			cout << "\nINVALID\n";
 			sleep(1);
+			cin.ignore(1024, '\n');
 			break;
+		}
+		case 114: //ASCII for "r" [restart]
+		{
+			DM.currTile = locale->location;
+			DM.currMap = mapHere;
+			return 999; //return -1;
 		}
 		case 101: //ASCII for "e" [Examine]
 		{
-			exploreAction(*locale);
+			//Something's wrong here. The current level is getting corrupted.
+			bool reset = exploreAction(*locale, DM);
+			if (reset == true)
+			{
+				DM.currTile = locale->location;
+				DM.currMap = mapHere;
+				return 999;
+			}
 			break;
 		}
 		case 49: //ASCII for "1" [North]
@@ -759,6 +767,7 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			{
 				cout << "\nNowhere to go there...\n";
 				sleep(1);
+				cin.ignore(1024, '\n');
 				break;
 			}
 			if (locale->adjacent[0]->tenant.type == 0)
@@ -770,18 +779,8 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			}
 			else
 			{
-				if (locale->adjacent[0]->editNum != -1)
-				{
-					DM.tempStorage1[locale->adjacent[0]->editNum] = locale->adjacent[0]->type;
-					DM.tempStorage2[locale->adjacent[0]->editNum] = locale->adjacent[0]->location;
-				}
-				battle = occCollide(locale->adjacent[0], 0);
-				if (locale->adjacent[0]->tenant.type == 0)
-				{
-					locale->adjacent[0]->adjacent[0]->editNum = locale->adjacent[0]->editNum;
-					locale->adjacent[0]->editNum = -1;
-					DM.tempStorage2[locale->adjacent[0]->editNum] = locale->adjacent[0]->adjacent[0]->location;
-				}
+				cin.ignore(1024, '\n');
+				battle = occCollide(locale->adjacent[0], 0, DM.currLevel, transition); 
 			}
 			break;
 		}
@@ -791,6 +790,7 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			{
 				cout << "\nNowhere to go there...\n";
 				sleep(1);
+				cin.ignore(1024, '\n');
 				break;
 			}
 			if (locale->adjacent[1]->tenant.type == 0)
@@ -802,18 +802,8 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			}
 			else
 			{
-				if (locale->adjacent[1]->editNum != -1)
-				{
-					DM.tempStorage1[locale->adjacent[1]->editNum] = locale->adjacent[1]->type;
-					DM.tempStorage2[locale->adjacent[1]->editNum] = locale->adjacent[1]->location;
-				}
-				battle = occCollide(locale->adjacent[1], 1);
-				if (locale->adjacent[1]->tenant.type == 1)
-				{
-					locale->adjacent[1]->adjacent[1]->editNum = locale->adjacent[1]->editNum;
-					locale->adjacent[1]->editNum = -1;
-					DM.tempStorage2[locale->adjacent[1]->editNum] = locale->adjacent[1]->adjacent[1]->location;
-				}
+				cin.ignore(1024, '\n');
+				battle = occCollide(locale->adjacent[1], 1, DM.currLevel, transition);
 			}
 			break;
 		}
@@ -823,6 +813,7 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			{
 				cout << "\nNowhere to go there...\n";
 				sleep(1);
+				cin.ignore(1024, '\n');
 				break;
 			}
 			if (locale->adjacent[3]->tenant.type == 0)
@@ -834,18 +825,8 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			}
 			else
 			{
-				if (locale->adjacent[3]->editNum != -1)
-				{
-					DM.tempStorage1[locale->adjacent[3]->editNum] = locale->adjacent[3]->type;
-					DM.tempStorage2[locale->adjacent[3]->editNum] = locale->adjacent[3]->location;
-				}
-				battle = occCollide(locale->adjacent[3], 3);
-				if (locale->adjacent[3]->tenant.type == 3)
-				{
-					locale->adjacent[3]->adjacent[3]->editNum = locale->adjacent[3]->editNum;
-					locale->adjacent[3]->editNum = -1;
-					DM.tempStorage2[locale->adjacent[3]->editNum] = locale->adjacent[3]->adjacent[3]->location;
-				}
+				cin.ignore(1024, '\n');
+				battle = occCollide(locale->adjacent[3], 3, DM.currLevel, transition);
 			}
 
 			break;
@@ -856,6 +837,7 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			{
 				cout << "\nNowhere to go there...\n";
 				sleep(1);
+				cin.ignore(1024, '\n');
 				break;
 			}
 			if (locale->adjacent[2]->tenant.type == 0)
@@ -867,18 +849,8 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			}
 			else
 			{
-				if (locale->adjacent[2]->editNum != -1)
-				{
-					DM.tempStorage1[locale->adjacent[2]->editNum] = locale->adjacent[2]->type;
-					DM.tempStorage2[locale->adjacent[2]->editNum] = locale->adjacent[2]->location;
-				}
-				battle = occCollide(locale->adjacent[2], 2);
-				if (locale->adjacent[2]->tenant.type == 0)
-				{
-					locale->adjacent[2]->adjacent[2]->editNum = locale->adjacent[2]->editNum;
-					locale->adjacent[2]->editNum = -1;
-					DM.tempStorage2[locale->adjacent[2]->editNum] = locale->adjacent[2]->adjacent[2]->location;
-				}
+				cin.ignore(1024, '\n');
+				battle = occCollide(locale->adjacent[2], 2, DM.currLevel, transition);
 			}
 			break;
 		}
@@ -897,10 +869,61 @@ int exploreStart(stateController &DM, int thisMap, bool resume, int restartHere)
 			int group = locale->adjacent[direction]->tenant.extra;
 			DM.currTile = locale->location;
 			DM.currMap = mapHere;
-			DM.tempStorage1[locale->adjacent[direction]->editNum] = locale->adjacent[direction]->tenant.type;
-			DM.tempStorage2[locale->adjacent[direction]->editNum] = -1;
+			/*DM.tempStorage1[locale->adjacent[direction]->editNum] = locale->adjacent[direction]->tenant.type;
+			DM.tempStorage2[locale->adjacent[direction]->editNum] = -1;*/
 
 			return group;
+		}
+		if (transition == true)
+		{
+			int direction = choice - 49;
+			if (direction == 2)
+				direction++;
+			else
+			{
+				if (direction == 3)
+					direction--;
+			}
+			int newMap = locale->adjacent[direction]->tenant.extra;
+			int newTile = locale->adjacent[direction]->editNum; 
+
+			mapHere = DM.currLevel.roomNums[newMap];
+			DM.currLevel.currRoom = Room(mapHere);
+			newTile = DM.currLevel.currRoom.entrances[newTile];
+
+			
+			switch (direction)
+			{
+			case(0):
+				newTile = newTile - DM.currLevel.currRoom.width;
+				break;
+			case(1):
+				newTile = newTile + DM.currLevel.currRoom.width;
+				break;
+			case(2):
+				newTile++;
+				break;
+			case(3):
+				newTile--;
+				break;
+			}
+
+			locale = loadMap(mapHere, false, newTile, DM.currLevel);
+			for (int i = 0; i < 4; i++)
+			{
+				int mod;
+				if (i % 2 == 0)
+					mod = 1;
+				else
+					mod = -1; 
+				if (locale->adjacent[i] != NULL)
+				{
+					locale->adjacent[i]->adjacent[i + mod] = locale;
+				}
+			}
+			DM.currTile = locale->location;
+			transition = false;
+			locale->tenant.type = 1;
 		}
 	}
 
@@ -911,13 +934,11 @@ void GameState()
 {
 	stateController DM;
 
-	
-
 	int battleGroup;
 	bool check = false;
 	bool menuBreak = false;
 	int map = 0;
-	int tile = -1;
+	int tile = false;
 	bool resume = false;
 
 	while (check == false)
@@ -945,20 +966,28 @@ void GameState()
 			cout << "ROUND 1: YOUR FIRST FIGHT\n";
 			sleep(1.5);
 			combatStart(DM, 0);
+			if (DM.Plife == false)
+				break;
 			cout << "A friend has come to help you!\n";
 			sleep(1.5);
 			cout << "ROUND 2: AGGRESSIVE ATTACKERS\n";
 			sleep(1.5);
 			DM.loadPlayer(1);
 			combatStart(DM, 1);
+			if (DM.Plife == false)
+				break;
 			cleanup();
 			cout << "ROUND 3: SUPPORTIVE FRIEND\n";
 			sleep(1.5);
 			combatStart(DM, 2);
+			if (DM.Plife == false)
+				break;
 			cleanup();
 			cout << "ROUND 4: WORKING TOGETHER\n";
 			sleep(1.5);
 			combatStart(DM, 3);
+			if (DM.Plife == false)
+				break;
 			cout << "The Gauntlet is completed, for now...\n";
 			sleep(2);
 			cleanup();
@@ -969,9 +998,10 @@ void GameState()
 		case 3:
 			//Include a "name your own character" feature before jumping in to anything.
 			DM.loadPlayer(1);
+			DM.currLevel = Level(-1);
 			while (menuBreak == false)
 			{
-				int battleGroup;
+				int battleGroup = -1;
 				battleGroup = exploreStart(DM, map, resume, tile);
 				if (battleGroup == -1)
 				{
@@ -979,9 +1009,16 @@ void GameState()
 					{
 						DM.tempStorage1[i] = 0;
 					}
+					menuBreak = true;
 					break;
 				}
-				menuBreak = combatStart(DM, battleGroup);
+				else
+				{
+					if (battleGroup != 999)
+					{
+						menuBreak = combatStart(DM, battleGroup);
+					}
+				}
 				resume = true;
 				map = DM.currMap;
 				tile = DM.currTile;
@@ -990,12 +1027,17 @@ void GameState()
 		case 4:
 			check = true;
 			break;
-		case 5:
+		case 5: //DEBUG OPTIONS
+			cout << "Speed: " << DM.Pparty[0].SPD << "\n";
+			sleep(2);
 			for (int i = 0; i < 20; i++)
 			{
 				DM.Pparty[0].LEVELUP();
-				combatStart(DM, 4);
 			}
+		case 6: //MORE DEBUG
+			string testOut = "This is a test string! We are testing specific commands... And making sure\nthat everything works? Let's see if it does.";
+			cutscenePlay(testOut);
+			sleep(10);
 		}
 	}
 

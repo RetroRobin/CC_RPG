@@ -5,6 +5,39 @@ using namespace std;
 
 enum tileType {FAIL, EMP, VINE, SAVE, TREASURE, WATER, TEXT};
 
+class Room
+{
+public:
+	string baseCode;
+	string editCode;
+	int width;
+	int height;
+	int entrances[10]{ 0 }; //Stores which room to send you to
+	int treasures[5]{ -1 }; //Store positions in the level's treasure array here. Check when creating tile.
+public:
+	Room();
+	Room(int);
+	void baseEdit(int, char);
+};
+
+class Level
+{
+public:
+	string name;
+	int roomNums[20]; //Stores the room spawns
+	Room currRoom;
+	bool cutsceneTrigger[20]{ false }; //For seeing if cutscenes have been triggered
+	int enemySpawn[10];
+	int BOSS;
+	bool tweasure[15]{ false }; //For seeing if treasures are collected
+	string roomChange;
+	string boxOpen;
+	//Graphics int?
+public:
+	Level();
+	Level(int);
+};
+
 class Occupant
 {
 public:
@@ -12,6 +45,7 @@ public:
 	int location; //Tile number in the Map array
 	int type; //0 = NONEXIST, 1 = player, 2 = Hlog, 3 = Vlog, 4 = enemy, 5 = water, 6 = Event, 7 = Transition
 	int extra = -1;
+	int arrRef = -1;
 public:
 	Occupant();
 	Occupant(int, int, int);
@@ -37,29 +71,28 @@ public:
 };
 
 
-Tile *loadMap(int, bool, int, int[], int[]);
-Tile constructMap(string, Tile[], int);
-string mapGeneration(int);
+Tile *loadMap(int, bool, int, Level &);
+Tile constructMap(Room, Tile[], int);
 void minimap(Tile[]); //For debug
-void drawTiles(Tile[]);
-void mapDraw(Tile);
+void drawTiles(Tile[], string);
+void mapDraw(Tile, string);
 string mapUpdate(string, int[], int[]);
 
 /*
 	TILE CODE FOR MAP STRINGS
 	0 (48) = NULL SPACE 
-	1 (49) = EMPTY 
-	2 (50) = PLAYER START
-	3 (51) = ITEM
-	4 (52) = SWITCH
-	5 (53) = SAVE
-	6 (54) = ENEMY
-	7 (55) = HORIZONTALLY ALIGNED LOG
-	8 (56) = VERTICALLY ALIGNED LOG
-	9 (57) = WATER
-	: (58) = CUTSCENE TRIGGER
-	; (59) = MAP TRANSITION
-	< (60) = TEXTBOX
+	1 (49) = EMPTY						0
+	2 (50) = PLAYER START				1
+	3 (51) = ITEM						2
+	4 (52) = SWITCH						3
+	5 (53) = SAVE						4
+	6 (54) = ENEMY						5
+	7 (55) = HORIZONTALLY ALIGNED LOG	6
+	8 (56) = VERTICALLY ALIGNED LOG		7
+	9 (57) = WATER						8
+	: (58) = CUTSCENE TRIGGER			9
+	; (59) = MAP TRANSITION				10
+	< (60) = TEXTBOX					11
 
 	Other tiles, perhaps
 	Party Member tile

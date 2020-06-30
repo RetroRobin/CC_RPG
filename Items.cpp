@@ -151,6 +151,20 @@ item::item(int select)
 		DESC = "wake up a sleeping friend, reviving them from being KOed.";
 		break;
 	}
+	case(5):
+	{/*
+		name = ???;
+		ID = 5;
+		maxAmount = ???;
+		UseEffort = ???;
+		effect = ?;  HP, MP, STAM, Revive?
+		potency = ???;
+		buddy = true? Enemy or friend?;
+		elem = something;
+		usage = Whatever makes sense;
+		DESC = "does whatever I want it to.";*/
+		break;
+	}
 	}
 }
 

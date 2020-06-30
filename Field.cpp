@@ -123,7 +123,7 @@ Tile::Tile(int kind, int bonus, int area)
 		//cout << "CREATED EVENT\n";
 		break;
 	}
-	case 10: //Map transition tile
+	case 10: //Map transition tile, need to figure out what it stores and how to use it
 	{
 		type = EMP;
 		tenant = Occupant(7, area, bonus);
@@ -384,65 +384,50 @@ string Tile::printOut(int row)
 
 //Fills in the map array based on a string, and then links them together.
 //Maploc determines where you start
-Tile constructMap(string mapGen, Tile map[], int mapLoc)
+Tile constructMap(Room mapNum, Tile map[], int mapLoc)
 {
-	//Process string and create map tiles
-	int mapWidth;
-	int mapHeight;
-
-	switch (mapGen[0])
+	string mapGen = mapNum.baseCode;
+	if (mapLoc != -1)
 	{
-	default:
-	{
-		mapWidth = 25;
-		mapHeight = 20;
-		break;
-	}
-	case 0: // 25 x 20
-	{
-		mapWidth = 25;
-		mapHeight = 20;
-		break;
-	}
-	case 1: // 50 x 10
-	{
-		mapWidth = 50;
-		mapHeight = 10;
-		break;
-	}
-	case 2: // 10 x 50
-	{
-		mapWidth = 10;
-		mapHeight = 50;
-		break;
-	}
+		mapGen = mapNum.editCode; 
 	}
 
 	int counter = 0;
-	int edit = 0;
 	int displacement = 1;
-	int ABORT = mapGen.length();
+	int ABORT = mapNum.baseCode.length();
 	int saveStart = -1;
 	Tile start;
 
 
-	for (int i = 0; i < mapHeight; i++)
+	for (int i = 0; i < mapNum.height; i++)
 	{
 
-		for (int j = 0; j < mapWidth; j++)
+		for (int j = 0; j < mapNum.width; j++)
 		{
 			if ((j + displacement) >= ABORT)
 			{
 				break;
 			}
 			int checkHere = j + displacement;
-			char currChar = mapGen[checkHere]; 
+			char currChar = mapGen[checkHere];
+			if (currChar == 0)
+			{
+				displacement++;
+				counter++;
+				currChar = mapGen[checkHere + 1];
+				if (currChar == 0)
+				{
+					displacement++;
+					counter++;
+					currChar = mapGen[checkHere + 2];
+				}
+			}
 			if (currChar != 48)
 			{
-
 				Tile boop;
 				int hope = currChar;
 				hope = hope - 49;
+
 				if (hope == 2 || hope == 3 || hope == 5 || hope == 9 || hope == 10 || hope == 11)
 				{
 					char bonus = mapGen[checkHere + 1];
@@ -450,35 +435,44 @@ Tile constructMap(string mapGen, Tile map[], int mapLoc)
 					bonanza = bonanza - 48;
 					boop = Tile(hope, bonanza, counter);
 					displacement++;
-					if (hope == 10)
+					counter++;
+					if (hope == 2 || hope == 9 || hope == 10)
 					{
-						boop.tenant.direction = mapGen[checkHere + 2] - 44;
+						boop.editNum = mapGen[checkHere + 2] - 48;
 						displacement++;
+						counter++;
+						//Switch for type to enter into Room Arrays
+						//We need "treasures" for the treasure array and "transitions" for the entrance array
+						if (hope == 10)
+						{
+							boop.tenant.direction = mapGen[checkHere + 3] - 44;
+							displacement++;
+							counter++;
+						}
 					}
+					
 				}
 				else
 				{
+					if (mapLoc > -1 && hope == 1) //Terminate player object copies
+					{
+						hope = 0;
+					}
 					boop = Tile(hope, 0, counter);
 				}
 				boop.tierH = j;
 				boop.tierV = i;
-				if (hope != 0 && hope != 1 && hope != 4 && hope != 8 && hope != 10 && hope != 11)
-				{
-					boop.editNum = edit;
-					edit++;
-				}
 				map[counter] = boop;
-				counter++;
 
 				if (hope == 1) //The number 2 is the start tile
 				{
-					saveStart = counter - 1;
+					saveStart = counter;
 				}
 			}
+			counter++;
 		}
-		displacement = displacement + mapWidth;
+		displacement = displacement + mapNum.width;
 	}
-
 	//Link all the map tiles
 	int compH;
 	int compV;
@@ -516,57 +510,12 @@ Tile constructMap(string mapGen, Tile map[], int mapLoc)
 		start = map[mapLoc];
 	}
 
-
 	return start;
 }
 
-//Spits back one of the preset map layouts. See the notes and crap below.
-string mapGeneration(int layout)
-{
-	string output;
-	switch (layout)
-	{
-	case 0:
-	{
-		output = "000000000000000000000000000111111110000000111111110011111111000000011111611100;//11111111111111111111110";
-		output = output + "01111111100010001111162110011111111000100011111111000000000000010000000000000000000000001000000000000"; 
-		output = output + "000000114011111113011000000000000111811211711100000000000011511111119110000000000000000000000000000000";
-		break;
-	}
-	/*
-	0	0000000000000000000000000			ITEMS: Band-aid (0)
-		0111111110000000111111110			SWITCHES: (0) INOPERABLE CURRENTLY
-		0111111110000000111116110			ENEMY MOBS: (1) (2)
-		0;11111111111111111111110
-		0111111110001000111116110
-		0111111110001000111111110
-		0000000000001000000000000
-		0000000000001000000000000
-		0000001141111111311000000
-		0000001118112117111000000
-		0000001151111111911000000
-		0000000000000000000000000
-	 */
-	case 1:
-	{
-		output = "00000000000000000000000000000000000111111100000000000000000011111110000000000000000001112111000000000";
-		output = output + "000000000111111100000000000000000011111110000000000000000000000000000000000";
-		break;
-	}
-	/*
-	0	0000000000000000000000000
-		0000000001111111000000000
-		0000000001111111000000000
-		0000000001112111000000000
-		0000000001111111000000000
-		0000000001111111000000000
-		0000000000000000000000000
-	*/
-	}
-	return output;
-}
-	
+
 //Spits back a miniature map of the area for you to see. I forget how you activate this.
+//Rework it so that all this needs is the room. Use the EditCode?
 void minimap(Tile map[])
 {
 	cout << "\n\n";
@@ -620,7 +569,7 @@ void minimap(Tile map[])
 }
 
 //Draws the seeable tiles on screen
-void drawTiles(Tile map[])
+void drawTiles(Tile map[], string Title)
 {
 	bool ceilingCheck[9]{false, false, false, false, false, false, false, false, false};
 	int offset = 0;
@@ -660,6 +609,11 @@ void drawTiles(Tile map[])
 					wall = true;
 				}
 				cout << map[k + offset].printOut(j);
+			}
+			if (i == 1)
+			{
+				if (j == 0)
+					cout << "       " << Title;
 			}
 			if (i == 3)
 			{
@@ -735,7 +689,7 @@ void drawTiles(Tile map[])
 }
 
 //Prepares the tiles to be drawn, and then calls the functions to draw them.
-void mapDraw(Tile start)
+void mapDraw(Tile start, string Title) //For some reason, the Player isn't being drawn on the first event when changing rooms
 {
 	cleanup();
 	Tile seeableMap[63];
@@ -841,9 +795,7 @@ void mapDraw(Tile start)
 		cout << "\n";
 	}*/ //For debugging tile issues
 
-	//minimap(seeableMap);
-
-	drawTiles(seeableMap);
+	drawTiles(seeableMap, Title);
 }
 
 //Alters the string so when recalling the map after a battle, changes stay.
@@ -909,13 +861,19 @@ string mapUpdate(string map, int locations[], int tileType[]) //WARNING: USE ASC
 }
 
 //Creates the map array, and then creates a new map or loads an old one
-Tile *loadMap(int mapStart, bool mapit, int mapLoc, int feed1[], int feed2[])
+Tile *loadMap(int mapStart, bool mapit, int mapLoc, Level &currLevel)
 {
 	Tile map[500];
-	string testMap = mapGeneration(mapStart);
+	Room testMap = Room(mapStart);
 	if (mapLoc != -1)
 	{
-		testMap = mapUpdate(testMap, feed1, feed2);
+		testMap = currLevel.currRoom;
+	}
+	else
+	{
+		//Here. Include a test to check out the currLevel booleans and alter testMap's baseCode accordingly.
+		//Approach it from the room's perspective, running a loop to check all the necessary parts
+		currLevel.currRoom = testMap;
 	}
 	Tile start = constructMap(testMap, map, mapLoc);
 	if (mapit == true)
