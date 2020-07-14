@@ -967,7 +967,10 @@ void GameState()
 			sleep(1.5);
 			combatStart(DM, 0);
 			if (DM.Plife == false)
+			{
+				DM.Plife = true;
 				break;
+			}
 			cout << "A friend has come to help you!\n";
 			sleep(1.5);
 			cout << "ROUND 2: AGGRESSIVE ATTACKERS\n";
@@ -975,19 +978,28 @@ void GameState()
 			DM.loadPlayer(1);
 			combatStart(DM, 1);
 			if (DM.Plife == false)
+			{
+				DM.Plife = true;
 				break;
+			}
 			cleanup();
 			cout << "ROUND 3: SUPPORTIVE FRIEND\n";
 			sleep(1.5);
 			combatStart(DM, 2);
 			if (DM.Plife == false)
+			{
+				DM.Plife = true;
 				break;
+			}
 			cleanup();
 			cout << "ROUND 4: WORKING TOGETHER\n";
 			sleep(1.5);
 			combatStart(DM, 3);
 			if (DM.Plife == false)
+			{
+				DM.Plife = true;
 				break;
+			}
 			cout << "The Gauntlet is completed, for now...\n";
 			sleep(2);
 			cleanup();
